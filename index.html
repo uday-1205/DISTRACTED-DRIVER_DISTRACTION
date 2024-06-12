@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"> 
+    <title>Driver Distraction Detection</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <center>
+        <br><h2>Driver Distraction Detection</h2><br>
+        <form id="upload-form" enctype="multipart/form-data">
+            <input type="file" name="file" class="btn btn-success" id="imageUp" multiple>
+            <button type="button" class="btn btn-success" id="btn-pred">Predict</button>
+        </form>
+        <div class="image-section" style="display:flex; flex-wrap: wrap; justify-content: center; margin: 10px; align-items: center;"></div>
+        <div class="loader" style="display:none;"></div>
+    </center><br><br>
+
+    <script>
+        $(document).ready(function () {
+        $('.image-section').hide();
+        $('.loader').hide();
+                
+        $("#imageUp").change(function () {
+            $('.image-section').empty();
+            $('.image-section').show();
+                    
+            for (let i = 0; i < this.files.length; i++) {
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                            
+                    let imagePreview = $('<img>', {
+                        class: 'img-responsive image-preview',
+                        src: e.target.result,
+                        style: 'height: 200px; width: 300px; margin: 10px;'
+                    });
+                    let result = $('<h5>', {
+                        class: 'result',
+                        text: ''
+                    });
+                    $('.image-section').append($('<div>', { class: 'image-preview-container' }).append(imagePreview, result));
+                };
+                reader.readAsDataURL(this.files[i]);
+            }
+        });
+
+        $('#btn-pred').click(function () {
+            var form_data = new FormData($('#upload-form')[0]);
+            $('.loader').show();
+            $.ajax({
+                type: 'POST',
+                url: '/predict',
+                data: form_data,
+                contentType: false,
+                cache: false,
+                processData: false,
+                async: true,
+                success: function (data) {
+                    $('.loader').hide();
+                    let results = data.predictions;
+                    $('.result').each(function (index) {
+                        $(this).text(results[index]);
+                        // You can customize the styling of the results here based on your requirements
+                    });
+                    console.log('Success!');
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+
+    </script>
+    
+</body>
+</html>
